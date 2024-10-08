@@ -1,5 +1,9 @@
 #include "includes.h"
 
+std::random_device rd;
+std::mt19937 eng(rd());
+std::uniform_real_distribution<double> weightDistr(-1.0, 1.0);
+
 class Layer {
 private:
 	int numNodesIn, numNodesOut;
@@ -19,7 +23,11 @@ public:
 	}
 
 	void InitRandomWeights() {
-
+		for (auto row : weights) {
+			for (int i = 0; i < row.size(); i++) {
+				row[i] = weightDistr(eng);
+			}
+		}
 	}
 
 	double Sigmoid(double x) {
@@ -51,6 +59,12 @@ public:
 		layers.reserve(layerSizes.size() - 1);
 		for (int i = 0; i < layers.size(); i++) {
 			layers[i] = Layer(layerSizes[i], layerSizes[i + 1]);
+		}
+	}
+
+	void InitRandomLayerWeights() {
+		for (auto layer : layers) {
+			layer.InitRandomWeights();
 		}
 	}
 

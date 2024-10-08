@@ -1,6 +1,5 @@
 #pragma once
 
-#define eulersNumber = 2.7182f;
 
 #include <iostream>
 #include <cmath>

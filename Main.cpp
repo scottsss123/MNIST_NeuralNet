@@ -64,6 +64,7 @@ std::vector<uint8_t> readMNISTLabels(const std::string& filename) {
 }
 
 int main(int argc, char** argv) {
+    // load data
     const std::string training_images_filename = "train-images.idx3-ubyte";
     const std::string training_labels_filename = "train-labels.idx1-ubyte";
     const std::string test_images_filename = "t10k-images.idx3-ubyte";
