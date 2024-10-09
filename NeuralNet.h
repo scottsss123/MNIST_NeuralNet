@@ -25,8 +25,18 @@ public:
 	void InitRandomWeights() {
 		for (auto row : weights) {
 			for (int i = 0; i < row.size(); i++) {
-				row[i] = weightDistr(eng);
+				//row[i] = weightDistr(eng);
+				row[i] = 0;
 			}
+		}
+	}
+
+	void OutputWeights() {
+		for (auto row : weights) {
+			for (int i = 0; i < row.size(); i++) {
+				std::cout << row[i] << " ";
+			}
+			std::cout << "\n";
 		}
 	}
 
@@ -65,6 +75,15 @@ public:
 	void InitRandomLayerWeights() {
 		for (auto layer : layers) {
 			layer.InitRandomWeights();
+		}
+	}
+
+	void OutputLayerWeights() {
+		int i = 0;
+		for (auto layer : layers) {
+			std::cout << "layer " << i << "\n";
+			layer.OutputWeights();
+			std::cout << "\n";
 		}
 	}
 

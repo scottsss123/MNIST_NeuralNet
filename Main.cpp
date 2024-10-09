@@ -80,9 +80,15 @@ int main(int argc, char** argv) {
     {
         for (int j = 0; j < 28; j++)
         {
-            std::cout << (int)test_images[1][i * 28 + j] << " ";
+            std::cout << (int)test_images[2][i * 28 + j] << " ";
         }
         std::cout << std::endl;
     }
-    std::cout << (int)test_labels[1];
+    std::cout << (int)test_labels[2];
+
+    std::vector<int> layerSizes = { 28*28 , 16 };
+    NeuralNet network(layerSizes);
+    network.InitRandomLayerWeights();
+    network.OutputLayerWeights();
+
 }
