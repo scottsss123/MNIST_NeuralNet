@@ -76,19 +76,17 @@ int main(int argc, char** argv) {
     std::vector<std::vector<uint8_t>> training_images = readMNISTImages(training_images_filename);
     std::vector<std::vector<uint8_t>> test_images = readMNISTImages(test_images_filename);
 
-    for (int i = 0; i < 28; i++)
-    {
-        for (int j = 0; j < 28; j++)
-        {
-            std::cout << (int)test_images[2][i * 28 + j] << " ";
+    // Display a sample image
+    for (int i = 0; i < 28; i++) {
+        for (int j = 0; j < 28; j++) {
+            std::cout << (test_images[2][i * 28 + j] > 127 ? '#' : '.') << ' ';
         }
         std::cout << std::endl;
     }
-    std::cout << (int)test_labels[2];
+    std::cout << "Label: " << static_cast<int>(test_labels[2]) << std::endl;
 
-    std::vector<int> layerSizes = { 28*28 , 16 };
+    std::vector<int> layerSizes = { 28*28 , 16, 16, 10 };
     NeuralNet network(layerSizes);
-    network.InitRandomLayerWeights();
-    network.OutputLayerWeights();
+    // network.OutputLayerWeights();  // BIGOUTPUT of 728*16 + 16*16 + 16*10  numbers
 
 }
