@@ -88,5 +88,7 @@ int main(int argc, char** argv) {
     std::vector<int> layerSizes = { 28*28 , 16, 16, 10 };
     NeuralNet network(layerSizes);
     // network.OutputLayerWeights();  // BIGOUTPUT of 728*16 + 16*16 + 16*10  numbers
-
+    // test classification
+    std::pair<int, double> guess = network.Classify(testImages[2]);
+    std::cout << "guess : " << guess.first << "/nconfidence : " << guess.second << "\n";
 }
