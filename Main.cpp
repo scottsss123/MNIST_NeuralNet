@@ -12,7 +12,7 @@ uint32_t reverseInt(uint32_t i) {
 	return ((uint32_t)c1 << 24) + ((uint32_t)c2 << 16) + ((uint32_t)c3 << 8) + ((uint32_t)c4);
 }
 
-std::vector<std::vector<uint8_t>> readMNISTImages(const std::string& filename) {
+std::vector<std::vector<double>> readMNISTImages(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
         std::cout << "Could not open file: " << filename << std::endl;
@@ -38,10 +38,19 @@ std::vector<std::vector<uint8_t>> readMNISTImages(const std::string& filename) {
         file.read((char*)images[i].data(), num_rows * num_cols);
     }
 
-    return images;
+    std::vector<std::vector<double>> rectifiedImages(num_images, std::vector<double>(num_rows * num_cols));
+    for (auto image : images) {
+        std::vector<double> rectifiedImage(28 * 28);
+        for (auto value : image) {
+            rectifiedImage.emplace_back(static_cast<double>(value) / 255);
+        }
+        rectifiedImages.emplace_back(rectifiedImage);
+    }
+
+    return rectifiedImages;
 }
 
-std::vector<uint8_t> readMNISTLabels(const std::string& filename) {
+std::vector<int> readMNISTLabels(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
     if (!file.is_open()) {
         std::cout << "Could not open file: " << filename << std::endl;
@@ -60,7 +69,12 @@ std::vector<uint8_t> readMNISTLabels(const std::string& filename) {
     std::vector<uint8_t> labels(num_items);
     file.read((char*)labels.data(), num_items);
 
-    return labels;
+    std::vector<int> rectifiedLabels(num_items);
+    for (auto label : labels) {
+        rectifiedLabels.emplace_back(static_cast<int>(label));
+    }
+
+    return rectifiedLabels;
 }
 
 int main(int argc, char** argv) {
@@ -71,27 +85,13 @@ int main(int argc, char** argv) {
     const std::string test_labels_filename = "t10k-labels.idx1-ubyte";
 
 
-	std::vector<uint8_t> training_labels = readMNISTLabels(training_labels_filename);
-    std::vector<uint8_t> test_labels = readMNISTLabels(test_labels_filename);
-    std::vector<std::vector<uint8_t>> training_images = readMNISTImages(training_images_filename);
-    std::vector<std::vector<uint8_t>> test_images = readMNISTImages(test_images_filename);
+	std::vector<int> training_labels = readMNISTLabels(training_labels_filename);
+    std::vector<int> test_labels = readMNISTLabels(test_labels_filename);
+    std::vector<std::vector<double>> training_images = readMNISTImages(training_images_filename);
+    std::vector<std::vector<double>> test_images = readMNISTImages(test_images_filename);
 
     std::vector<int> layerSizes = { 28*28 , 16, 16, 10 };
     NeuralNet network(layerSizes);
 
-
-    // MOVE THIS TO NeuralNet.h
-    // Give params e.g. sample size
-    // Implement backprop!
-    for (int i = 0; i < training_images.size(); i += 100) {
-        for (int j = 0; j < 100; j++) {
-            int index = i * 100 + j;
-            std::vector<double> inputs(28 * 28);
-            for (int k = 0; k < 28 * 28; k++) {
-                inputs.emplace_back(static_cast<double>(training_images[index][k]) / 255);
-            }
-            double cost = network.CalculateSingleCost(inputs, static_cast<int>(training_labels[index]));
-        }
-        break;
-    }
+    network.Train(training_images, training_labels);
 }

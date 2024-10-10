@@ -3,18 +3,20 @@
 
 
 class Layer {
-private:
+public:
 	int numNodesIn, numNodesOut;
+	std::vector<double> curActivations;
 	std::vector<std::vector<double>> weights;
 	std::vector<double> biases;
 	std::mt19937 eng;
 	std::uniform_real_distribution<double> weightDistr;
 
 public:
-	Layer(int nNodesIn, int nNodesOut) : numNodesIn(nNodesIn), numNodesOut(nNodesOut), eng(std::random_device{}()), weightDistr(-1.0, 1.0) 
+	Layer(int nNodesIn, int nNodesOut) : numNodesIn(nNodesIn), numNodesOut(nNodesOut), eng(std::random_device{}()), weightDistr(-1.0, 1.0), curActivations(numNodesOut)
 	{
 		weights.resize(numNodesIn, std::vector<double>(numNodesOut));
 		biases.resize(numNodesOut);
+		curActivations.resize(numNodesOut);
 		InitRandomWeights();
 	}
 
@@ -44,17 +46,16 @@ public:
 	}
 
 	std::vector<double> CalculateOutputs(std::vector<double>& inputs) {
-		std::vector<double> outputs(numNodesOut);
 
 		for (int nodeOut = 0; nodeOut < numNodesOut; nodeOut++) {
 			double weightedInput = biases[nodeOut];
 			for (int nodeIn = 0; nodeIn < numNodesIn; nodeIn++) {
 				weightedInput += inputs[nodeIn] * weights[nodeIn][nodeOut];
 			}
-			outputs[nodeOut] = Sigmoid(weightedInput);
+			curActivations[nodeOut] = Sigmoid(weightedInput);
 		}
 
-		return outputs;
+		return curActivations;
 	}
 };
 
@@ -80,6 +81,7 @@ public:
 		for (auto& layer : layers) {
 			inputs = layer.CalculateOutputs(inputs);
 		}
+		SoftMaxify(inputs);
 		return inputs;
 	}
 
@@ -103,7 +105,6 @@ public:
 
 	void ClassifyAndOutput(std::vector<double>& inputs) {
 		std::vector<double> outputs = CalculateOutputs(inputs);
-		SoftMaxify(outputs);
 
 		for (int i = 0; i < outputs.size(); i++) {
 			std::cout << "[ " << i << ",  " << outputs[i] << " ]\n";
@@ -122,4 +123,40 @@ public:
 		}
 		return sumError;
 	}	
+
+	// inverse of sigmoid , to atain un-rectified activation of node
+	double Logit(double x) {
+		return std::log(x / (1 - x));
+	}
+
+	std::vector<double> calculateSingleWeightChanges(std::vector<double> inputs) {
+
+	}
+
+	void Train(std::vector<std::vector<double>>& images, std::vector<int>& labels) {
+		// check is same number of images and labels
+		int n_images = images.size();
+		int n_labels = labels.size();
+		if (n_images != n_labels) {
+			std::cout << "n_images != n_labels\n";
+			return;
+		}
+		else if (n_images == 0) {
+			std::cout << "n_images == 0\n";
+			return;
+		}
+		// find size of input
+		int input_size = images[0].size();
+		// store weight changes
+		int n_weights = 0;
+		int n_biases = 0;
+		for (auto layer : layers) {
+			n_weights += layer.numNodesIn * layer.numNodesOut;
+			n_biases += layer.numNodesOut;
+		}
+		std::vector<double> weightChanges(n_weights + n_biases);
+		
+
+		
+	}
 };
