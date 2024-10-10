@@ -76,19 +76,22 @@ int main(int argc, char** argv) {
     std::vector<std::vector<uint8_t>> training_images = readMNISTImages(training_images_filename);
     std::vector<std::vector<uint8_t>> test_images = readMNISTImages(test_images_filename);
 
-    // Display a sample image
-    for (int i = 0; i < 28; i++) {
-        for (int j = 0; j < 28; j++) {
-            std::cout << (test_images[2][i * 28 + j] > 127 ? '#' : '.') << ' ';
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "Label: " << static_cast<int>(test_labels[2]) << std::endl;
-
     std::vector<int> layerSizes = { 28*28 , 16, 16, 10 };
     NeuralNet network(layerSizes);
-    // network.OutputLayerWeights();  // BIGOUTPUT of 728*16 + 16*16 + 16*10  numbers
-    // test classification
-    std::pair<int, double> guess = network.Classify(testImages[2]);
-    std::cout << "guess : " << guess.first << "/nconfidence : " << guess.second << "\n";
+
+
+    // MOVE THIS TO NeuralNet.h
+    // Give params e.g. sample size
+    // Implement backprop!
+    for (int i = 0; i < training_images.size(); i += 100) {
+        for (int j = 0; j < 100; j++) {
+            int index = i * 100 + j;
+            std::vector<double> inputs(28 * 28);
+            for (int k = 0; k < 28 * 28; k++) {
+                inputs.emplace_back(static_cast<double>(training_images[index][k]) / 255);
+            }
+            double cost = network.CalculateSingleCost(inputs, static_cast<int>(training_labels[index]));
+        }
+        break;
+    }
 }

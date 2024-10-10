@@ -83,6 +83,16 @@ public:
 		return inputs;
 	}
 
+	void SoftMaxify(std::vector<double>& vec) {
+		double sum = 0;
+		for (int i = 0; i < vec.size(); i++) {
+			sum += std::exp(vec[i]);
+		}
+		for (int i = 0; i < vec.size(); i++) {
+			vec[i] = std::exp(vec[i]) / sum;
+		}
+	}
+
 	std::pair<int, double> Classify(std::vector<double> inputs) {
 		std::vector<double> outputs = CalculateOutputs(inputs);
 		
@@ -90,4 +100,26 @@ public:
 		int index = std::distance(outputs.begin(), maxElement);
 		return { index, *maxElement };
 	}
+
+	void ClassifyAndOutput(std::vector<double>& inputs) {
+		std::vector<double> outputs = CalculateOutputs(inputs);
+		SoftMaxify(outputs);
+
+		for (int i = 0; i < outputs.size(); i++) {
+			std::cout << "[ " << i << ",  " << outputs[i] << " ]\n";
+		}
+	}
+
+	double CalculateSingleCost(std::vector<double>& inputs, int label) {
+		std::vector<double> predictions = CalculateOutputs(inputs);
+		double sumError = 0;
+		for (int i = 0; i < predictions.size(); i++) {
+			double target = 0;
+			if (i == label) {
+				target = 1.0;
+			}
+			sumError += std::pow(predictions[i] - target, 2);
+		}
+		return sumError;
+	}	
 };
