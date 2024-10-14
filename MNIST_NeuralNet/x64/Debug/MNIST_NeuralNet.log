@@ -1,14 +1,14 @@
 ﻿  Main.cpp
-C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(101,13): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
+C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(115,13): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
   (compiling source file 'Main.cpp')
   
-C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(132,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(166,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   (compiling source file 'Main.cpp')
   
-C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(133,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(167,16): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   (compiling source file 'Main.cpp')
   
-C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(143,18): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\NeuralNet.h(177,18): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
   (compiling source file 'Main.cpp')
   
   MNIST_NeuralNet.vcxproj -> C:\Users\scott\Documents\Dev\C++\MNIST_NeuralNet-main\x64\Debug\MNIST_NeuralNet.exe

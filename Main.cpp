@@ -38,7 +38,7 @@ std::vector<std::vector<double>> readMNISTImages(const std::string& filename) {
         file.read((char*)images[i].data(), num_rows * num_cols);
     }
 
-    std::vector<std::vector<double>> rectifiedImages(num_images, std::vector<double>(num_rows * num_cols));
+    std::vector<std::vector<double>> rectifiedImages;
     for (auto image : images) {
         std::vector<double> rectifiedImage(28 * 28);
         for (auto value : image) {
@@ -46,7 +46,6 @@ std::vector<std::vector<double>> readMNISTImages(const std::string& filename) {
         }
         rectifiedImages.emplace_back(rectifiedImage);
     }
-
     return rectifiedImages;
 }
 
@@ -69,13 +68,14 @@ std::vector<int> readMNISTLabels(const std::string& filename) {
     std::vector<uint8_t> labels(num_items);
     file.read((char*)labels.data(), num_items);
 
-    std::vector<int> rectifiedLabels(num_items);
+    std::vector<int> rectifiedLabels;
     for (auto label : labels) {
         rectifiedLabels.emplace_back(static_cast<int>(label));
     }
 
     return rectifiedLabels;
 }
+
 
 int main(int argc, char** argv) {
     // load data
@@ -93,5 +93,4 @@ int main(int argc, char** argv) {
     std::vector<int> layerSizes = { 28*28 , 16, 16, 10 };
     NeuralNet network(layerSizes);
 
-    network.Train(training_images, training_labels);
 }
