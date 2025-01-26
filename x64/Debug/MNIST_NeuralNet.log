@@ -1,3 +1,0 @@
-﻿  Main.cpp
-D:\Dev\c++\reLearn\MNIST_NeuralNet\NeuralNet.h(90,13): warning C4244: 'initializing': conversion from '__int64' to 'int', possible loss of data
-  MNIST_NeuralNet.vcxproj -> D:\Dev\c++\reLearn\MNIST_NeuralNet\x64\Debug\MNIST_NeuralNet.exe

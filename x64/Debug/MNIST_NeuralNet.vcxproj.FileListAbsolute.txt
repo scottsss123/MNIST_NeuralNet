@@ -1,1 +1,0 @@
-D:\Dev\c++\reLearn\MNIST_NeuralNet\x64\Debug\MNIST_NeuralNet.exe
