@@ -1,8 +1,0 @@
-﻿  MNIST.cpp
-D:\Dev\c++\MNIST\MNIST\MNIST.cpp(20,20): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-D:\Dev\c++\MNIST\MNIST\MNIST.cpp(22,30): warning C4244: '=': conversion from 'double' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=float
-          ]
-  MNIST.vcxproj -> D:\Dev\c++\MNIST\MNIST\x64\Debug\MNIST.exe

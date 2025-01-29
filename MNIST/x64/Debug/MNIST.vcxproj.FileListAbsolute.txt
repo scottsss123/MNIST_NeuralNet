@@ -1,1 +1,0 @@
-D:\Dev\c++\MNIST\MNIST\x64\Debug\MNIST.exe
