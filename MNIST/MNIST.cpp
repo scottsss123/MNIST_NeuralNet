@@ -9,46 +9,49 @@ const std::string training_images_filepath = "./train-images.idx3-ubyte";
 const std::string training_labels_filepath = "./train-labels.idx1-ubyte";
 
 const int n_pixels = 28 * 28;
+const double learning_rate = 10;
 
 // --------------- global variables ---------------------------------------------
 std::vector<std::vector<unsigned char>> images;
 std::vector<std::vector<unsigned char>> labels;
 
-// random float gen, e.g. rand_real(e2);
+// random double gen, e.g. rand_real(e2);
 std::random_device rd;
 std::mt19937 e2(rd());
 std::uniform_real_distribution<> rand_real(-1, 1);
 std::uniform_real_distribution<> small_rand_real(-0.1, 0.1);
 
 // activation arrays 
-std::vector<float> a0(n_pixels);
-std::vector<float> a1(16);
-std::vector<float> a2(16);
-std::vector<float> a3(10);
+std::vector<double> a0(n_pixels);
+std::vector<double> a1(16);
+std::vector<double> a2(16);
+std::vector<double> a3(10);
 
 // weight arrays
-std::vector<float> w1(a0.size() * a1.size());
-std::vector<float> w2(a1.size() * a2.size());
-std::vector<float> w3(a2.size() * a3.size());
+std::vector<double> w1(a0.size() * a1.size());
+std::vector<double> w2(a1.size() * a2.size());
+std::vector<double> w3(a2.size() * a3.size());
 
 // bias arrays
-std::vector<float> b1(16);
-std::vector<float> b2(16);
-std::vector<float> b3(10);
+std::vector<double> b1(16);
+std::vector<double> b2(16);
+std::vector<double> b3(10);
 
 // tweak arrays    tweaks to weights/biases in layer 0/1/2/3
-std::vector<float> tw1(a0.size() * a1.size());
-std::vector<float> tw2(a1.size() * a2.size());
-std::vector<float> tw3(a2.size() * a3.size());
-std::vector<float> tb1(a1.size());
-std::vector<float> tb2(a2.size());
-std::vector<float> tb3(a3.size());
+std::vector<double> tw1(a0.size() * a1.size());
+std::vector<double> tw2(a1.size() * a2.size());
+std::vector<double> tw3(a2.size() * a3.size());
+std::vector<double> tb1(a1.size());
+std::vector<double> tb2(a2.size());
+std::vector<double> tb3(a3.size());
 
 // activation 'tweaks'
-std::vector<float> at3(a3.size());
-std::vector<float> at2(a2.size());
-std::vector<float> at1(a1.size());
-std::vector<float> at0(a0.size());
+std::vector<double> at3(a3.size());
+std::vector<double> at2(a2.size());
+std::vector<double> at1(a1.size());
+std::vector<double> at0(a0.size());
+
+int current_img_index = 1;
 
 // --------------- functions ---------------------------------------------
 std::vector<std::vector<unsigned char>> readImages(const std::string& filePath) {
@@ -141,7 +144,7 @@ void initialiseBiases() {
 
 void populateInputs(int index) {
 	for (int i = 0; i < n_pixels; i++) {
-		float v = (float)images[index][i];
+		double v = (double)images[index][i];
 		a0[i] = v / 255; // normalises greyscale between 0 and 1
 	}
 }
@@ -150,15 +153,15 @@ int getLabel(int index) {
 	return (int)labels[index][0];
 }
 
-float sigmoid(float x) {
+double sigmoid(double x) {
 	return 1 / (1 + std::exp(-x));
 }
 
-float inverse_sigmoid(float x) {
-	std::log(x / (1-x));
+double inverse_sigmoid(double x) {
+	return std::log(x / (1-x));
 }
 
-void outputVec(std::vector<float>& v) {
+void outputVec(std::vector<double>& v) {
 	for (int i = 0; i < v.size(); i++) {
 		std::cout << v[i] << ", ";
 	}
@@ -168,7 +171,7 @@ void outputVec(std::vector<float>& v) {
 void forwardProp() {
 	// pixels -> layer 1
 	for (int i = 0; i < a1.size(); i++) {
-		float sum = 0;
+		double sum = 0;
 		for (int j = 0; j < a0.size(); j++) {
 			sum += a0[j] * w1[i * a0.size() + j];
 		}
@@ -177,7 +180,7 @@ void forwardProp() {
 	}
 	// layer 1 -> layer 2
 	for (int i = 0; i < a2.size(); i++) {
-		float sum = 0;
+		double sum = 0;
 		for (int j = 0; j < a1.size(); j++) {
 			sum += a1[j] * w2[i * a1.size() + j];
 		}
@@ -186,7 +189,7 @@ void forwardProp() {
 	}
 	// layer 2 -> layer 3
 	for (int i = 0; i < a3.size(); i++) {
-		float sum = 0;
+		double sum = 0;
 		for (int j = 0; j < a2.size(); j++) {
 			sum += a2[j] * w3[i * a2.size() + j];
 		}
@@ -196,28 +199,37 @@ void forwardProp() {
 }
 
 void backProp() {
+	std::vector<double> y(10);
+	y[getLabel(current_img_index)] = 1;
+
 	// adds to tweak arrays how the cost most quickly decreases for current image
 	for (int j = 0; j < a3.size(); j++) {
+		//std::cout << "backprop last layer, node " << j << ":\n";
 		for (int k = 0; k < a2.size(); k++) {
-			float wt = 0; // weight tweak
+			//std::cout << "backprop penultimate layer, node " << k << ": ";
 
-			float delZdelW; // d(weighted sum) / d(weight)
-			float delAdelZ; // d(activation of jth node in last layer) / d(weighted sum)
-			float delCdelA; // d(cost) / d(activation of jth node in last layer)
+			double delZdelW; // d(weighted sum) / d(weight)
+			double delAdelZ; // d(activation of jth node in last layer) / d(weighted sum)
+			double delCdelA; // d(cost) / d(activation of jth node in last layer)
 
-			delCdelA = 2 * (a3[j] - )
+			delCdelA = 2 * (a3[j] - y[j]);
+			//delAdelZ = sigmoid(inverse_sigmoid(a2[k])) * (1 - sigmoid(inverse_sigmoid(a2[k])));
+			delAdelZ = a2[k] * (1 - a2[k]);
+			delZdelW = a2[k];
 
-			tw3[j * w3.size() + k] += wt;
+			double product = delZdelW * delAdelZ * delCdelA;
+
+			tw3[j * a2.size() + k] += product;
 		}
 	}
 }
 
-float cost(int target) {
-	float sum = 0;
-	std::vector<float> target_arr(a3.size());
+double cost(int target) {
+	double sum = 0;
+	std::vector<double> target_arr(a3.size());
 	target_arr[target] = 1;
 
-	// mean squared error
+	// squared error
 	for (int i = 0; i < a3.size(); i++) {
 		sum += std::pow((target_arr[i] - a3[i]), 2);
 	}
@@ -236,8 +248,27 @@ int main()
 	initialiseWeights();
 	initialiseBiases();
 
-	populateInputs(1);
+	std::cout << "random weights:\n";
+	populateInputs(current_img_index);
 	forwardProp();
+	std::cout << "output: ";
 	outputVec(a3);
-	std::cout << "cost: " << cost(getLabel(1));
+	std::cout << "cost: " << cost(getLabel(current_img_index)) << "\n";
+
+	for (int j = 0; j < 1000; j++) {
+		std::cout << "training iteration " << j+1 << "\n";
+		backProp();
+		for(int i = 0; i < tw3.size(); i++) {
+			tw3[i] *= 0.1;
+		}
+		for(int i = 0; i < tw3.size(); i++) {
+			w3[i] = w3[i] - (learning_rate * tw3[i]);
+		}
+		populateInputs(current_img_index);
+		forwardProp();
+		std::cout << "output: ";
+		outputVec(a3);
+		std::cout << "cost: " << cost(getLabel(current_img_index)) << "\n";
+	}
 }
+
