@@ -9,7 +9,7 @@ const std::string training_images_filepath = "./train-images.idx3-ubyte";
 const std::string training_labels_filepath = "./train-labels.idx1-ubyte";
 
 const int n_pixels = 28 * 28;
-const double learning_rate = 10;
+const double learning_rate = 1;
 
 // --------------- global variables ---------------------------------------------
 std::vector<std::vector<unsigned char>> images;
@@ -46,10 +46,8 @@ std::vector<double> tb2(a2.size());
 std::vector<double> tb3(a3.size());
 
 // activation 'tweaks'
-std::vector<double> at3(a3.size());
 std::vector<double> at2(a2.size());
 std::vector<double> at1(a1.size());
-std::vector<double> at0(a0.size());
 
 int current_img_index = 1;
 
@@ -154,24 +152,24 @@ void resetTweakArrs() {
 		tw1[i] = 0;
 	for (int i = 0; i < tw2.size(); i++) 
 		tw2[i] = 0;
-	for (int i = 0; k < tw3.size(); i++)
+	for (int i = 0; i < tw3.size(); i++)
 		tw3[i] = 0;
 
 	for (int i = 0; i < tb1.size(); i++)
 		tb1[i] = 0;
 	for (int i = 0; i < tb2.size(); i++)
 		tb2[i] = 0;
-	for (int i = 0; k < tb3.size(); i++)
+	for (int i = 0; i < tb3.size(); i++)
 		tb3[i] = 0;
 
-	for (int i = 0; i < at0.size(); i++)
-		at0[i] = 0;
+	//for (int i = 0; i < at0.size(); i++)
+	//	at0[i] = 0;
 	for (int i = 0; i < at1.size(); i++)
 		at1[i] = 0;
 	for (int i = 0; i < at2.size(); i++)
 		at2[i] = 0;
-	for (int i = 0; k < at3.size(); i++)
-		at3[i] = 0;
+	//for (int i = 0; i < at3.size(); i++)
+	//	at3[i] = 0;
 }
 
 int getLabel(int index) {
@@ -223,9 +221,25 @@ void forwardProp() {
 	}
 }
 
+void updateWeightsAndBiases() {
+	for(int i = 0; i < tw3.size(); i++) {
+		//std::cout << "weight before: " << w3[i] << "\n";
+		//std::cout << "tw3[i]: " << tw3[i] << "\n";
+		w3[i] -= learning_rate * tw3[i]; // subtracting subtracting delCdelW => most quick decrease of cost
+		//std::cout << "weight after: " << w3[i] << "\n";
+	}
+	for(int i = 0; i < tb3.size(); i++) {
+		b3[i] -= learning_rate * tb3[i];
+	}
+	for(int i = 0; i < tw2.size(); i++) {
+		w2[i] -= learning_rate * tw2[i];
+	}
+	for(int i = 0; i < tb2.size(); i++) {
+		b2[i] -= learning_rate * tb2[i];
+	}
+}
+
 void backProp() { // adds to tweak arrays -delC / del x : x = weights & biases for currently loaded image
-
-
 	std::vector<double> y(10);
 	y[getLabel(current_img_index)] = 1;
 
@@ -241,21 +255,54 @@ void backProp() { // adds to tweak arrays -delC / del x : x = weights & biases f
 			double delCdelA; // d(cost) / d(activation of jth node in last layer)
 
 			delCdelA = 2 * (a3[j] - y[j]);
-			//delAdelZ = sigmoid(inverse_sigmoid(a2[k])) * (1 - sigmoid(inverse_sigmoid(a2[k])));
-			delAdelZ = a2[k] * (1 - a2[k]);
+			//delAdelZ = sigmoid(inverse_sigmoid(a3[k])) * (1 - sigmoid(inverse_sigmoid(a3[k])));
+			delAdelZ = a3[k] * (1 - a3[k]);  
 			delZdelW = a2[k];
 
 			double delCdelW = delZdelW * delAdelZ * delCdelA;
 
-			// add negative gradient of weight
-			tw3[j * a2.size() + k] -= delCdelW;
+			std::cout << "delCdelW: " << delCdelW << "\n"; // e-319 !?!?!?!?
+			tw3[j * a2.size() + k] += delCdelW;
 
 			// biases
 			// delCdelB = delZdelB * delAdelZ * delCdelA
-			//          = 1 * delAdelZ * delC del A
+			//          = 1 * delAdelZ * delCdelA
 			double delCdelB = 1 * delAdelZ * delCdelA;
-			tb3[j] -= delCdelB;
+			tb3[j] += delCdelB;
+
+			// layer 2's optimal activaiton changes
+			// delCdela = delZdela * delAdelZ * delCdelA
+			double delZdela = w3[j * a2.size() + k];
+			double delCdela = delZdela * delAdelZ * delCdelA;
+			at2[k] += delCdela;
 		}
+	}
+	for (int j = 0; j < a2.size(); j++) {
+		for (int k = 0; k < a1.size(); k++) {
+			double delZdelW = a1[k];
+			double delAdelZ = a2[k] * (1 - a2[k]);
+			double delCdelA = at2[j];
+
+			double delCdelW = delZdelW * delAdelZ * delCdelA;
+			tw2[j * a2.size() + k] += delCdelW;
+
+			double delCdelB = 1 * delAdelZ * delCdelA;;
+			tb2[j * a2.size() + k] += delCdelB;
+
+
+		}
+	}
+	for (int i = 0; i < tw3.size(); i++) {
+		tw3[i] *= (1 / a3.size());
+	}
+	for (int i = 0; i < tb3.size(); i++) {
+		tb3[i] *= (1 / a3.size());
+	}
+	for (int i = 0; i < tw2.size(); i++) {
+		tw2[i] *= (1 / a2.size());
+	}	
+	for (int i = 0; i < tb2.size(); i++) {
+		tb2[i] *= (1 / a2.size());
 	}
 }
 
@@ -290,15 +337,18 @@ int main()
 	outputVec(a3);
 	std::cout << "cost: " << cost(getLabel(current_img_index)) << "\n";
 
-	for (int j = 0; j < 1000; j++) {
+	for (int j = 0; j < 1; j++) {
 		std::cout << "training iteration " << j+1 << "\n";
+
+		//std::cout << "w3 before: ";
+		//outputVec(w3);
+
 		backProp();
-		for(int i = 0; i < tw3.size(); i++) {
-			tw3[i] *= 0.1;
-		}
-		for(int i = 0; i < tw3.size(); i++) {
-			w3[i] = w3[i] - (learning_rate * tw3[i]);
-		}
+		updateWeightsAndBiases();
+
+		//std::cout << "w3 after: ";
+		//outputVec(w3);
+
 		populateInputs(current_img_index);
 		forwardProp();
 		std::cout << "output: ";
