@@ -149,6 +149,31 @@ void populateInputs(int index) {
 	}
 }
 
+void resetTweakArrs() {
+	for (int i = 0; i < tw1.size(); i++) 
+		tw1[i] = 0;
+	for (int i = 0; i < tw2.size(); i++) 
+		tw2[i] = 0;
+	for (int i = 0; k < tw3.size(); i++)
+		tw3[i] = 0;
+
+	for (int i = 0; i < tb1.size(); i++)
+		tb1[i] = 0;
+	for (int i = 0; i < tb2.size(); i++)
+		tb2[i] = 0;
+	for (int i = 0; k < tb3.size(); i++)
+		tb3[i] = 0;
+
+	for (int i = 0; i < at0.size(); i++)
+		at0[i] = 0;
+	for (int i = 0; i < at1.size(); i++)
+		at1[i] = 0;
+	for (int i = 0; i < at2.size(); i++)
+		at2[i] = 0;
+	for (int i = 0; k < at3.size(); i++)
+		at3[i] = 0;
+}
+
 int getLabel(int index) {
 	return (int)labels[index][0];
 }
@@ -198,16 +223,19 @@ void forwardProp() {
 	}
 }
 
-void backProp() {
+void backProp() { // adds to tweak arrays -delC / del x : x = weights & biases for currently loaded image
+
+
 	std::vector<double> y(10);
 	y[getLabel(current_img_index)] = 1;
 
 	// adds to tweak arrays how the cost most quickly decreases for current image
+	// output layer
 	for (int j = 0; j < a3.size(); j++) {
 		//std::cout << "backprop last layer, node " << j << ":\n";
 		for (int k = 0; k < a2.size(); k++) {
 			//std::cout << "backprop penultimate layer, node " << k << ": ";
-
+			// weights
 			double delZdelW; // d(weighted sum) / d(weight)
 			double delAdelZ; // d(activation of jth node in last layer) / d(weighted sum)
 			double delCdelA; // d(cost) / d(activation of jth node in last layer)
@@ -217,9 +245,16 @@ void backProp() {
 			delAdelZ = a2[k] * (1 - a2[k]);
 			delZdelW = a2[k];
 
-			double product = delZdelW * delAdelZ * delCdelA;
+			double delCdelW = delZdelW * delAdelZ * delCdelA;
 
-			tw3[j * a2.size() + k] += product;
+			// add negative gradient of weight
+			tw3[j * a2.size() + k] -= delCdelW;
+
+			// biases
+			// delCdelB = delZdelB * delAdelZ * delCdelA
+			//          = 1 * delAdelZ * delC del A
+			double delCdelB = 1 * delAdelZ * delCdelA;
+			tb3[j] -= delCdelB;
 		}
 	}
 }
